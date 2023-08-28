@@ -46,7 +46,6 @@ if (NOT EXISTS ${FAISS_REPO_DIR})
 endif ()
 
 set(FAISS_ENABLE_GPU OFF)
-# set(FAISS_ENABLE_PYTHON OFF)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/faiss EXCLUDE_FROM_ALL)
 
 add_executable(${TARGET_HELLO_FAISS} ${CMAKE_CURRENT_SOURCE_DIR}/cpp/hello_faiss.cpp)
