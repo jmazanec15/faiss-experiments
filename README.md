@@ -3,10 +3,28 @@
 Project containing experimental client code using the ** faiss ** library in order to test out different concepts.
 
 
-## Run python code 
+## Setup AL2023
 
-Prereqs:
-1. Python 3.8 environment
+Install prereqs:
+```bash
+sudo yum install gcc-c++ tmux git zlib-devel openblas-devel gfortran -y
+
+```
+
+Get conda from https://www.anaconda.com/download/
+
+Create 3.8 Conda environment:
+```bash
+conda create -n knn-perf python=3.8
+conda activate knn-perf
+```
+
+Install python reqs:
+```bash
+pip install numpy cmake==3.23.3 swig h5py psutil
+```
+
+## Run python code
 
 ```bash
 
@@ -14,6 +32,7 @@ cmake -Bbuild .
 make -C build -j faiss swigfaiss
 
 (cd build/external/faiss/faiss/python && python3 setup.py build)
-PYTHONPATH="$(ls -d ./build/external/faiss/faiss/python/build/lib*/)"
+export PYTHONPATH="$(ls -d `pwd`/build/external/faiss/faiss/python/build/lib*/):`pwd`/"
 
+python python/disk_experiment.py
 ```
