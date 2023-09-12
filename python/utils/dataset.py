@@ -172,6 +172,12 @@ class BigANNVectorDataSet(DataSet):
         self.current = end_i
         return v
 
+    def read_batch(self, chunk_size: int):
+        nvecs = chunk_size
+        arr = np.fromfile(self.file, count=nvecs * self.dimension, dtype=np.float32,
+                          offset=4 * self.dimension)
+        return arr.reshape(nvecs, self.dimension)
+
     def _read_vector(self):
         return np.asarray([self.reader(self.file) for _ in
                            range(self.dimension)])

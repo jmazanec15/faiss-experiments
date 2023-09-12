@@ -4,12 +4,14 @@ import time
 import numpy as np
 import faiss
 from faiss.contrib.ondisk import merge_ondisk
-from python.dataset import BigANNVectorDataSet, BigANNNeighborDataSet, HDF5DataSet, Context
-from python.utils import recall_at_r
+from python.utils.dataset import BigANNVectorDataSet, BigANNNeighborDataSet
+from python.utils.utils import recall_at_r
+
+from faiss import omp_set_num_threads
 
 stage = int(sys.argv[1])
 
-tmpdir = '/home/ec2-user/tmp'
+tmpdir = '/home/ec2-user/tmp/'
 data = "/home/ec2-user/data/BIGANN-base.1B.u8bin"
 queries = "/home/ec2-user/data/BIGANN-query.public.10K.u8bin"
 gt = "/home/ec2-user/data/BIGANN-public_query_gt100.bin"
@@ -24,6 +26,9 @@ index_count = 1_000_000_000
 batch_size = 10_000_000
 
 def run_experiment(stage):
+
+    omp_set_num_threads(12)
+
     index_dataset = BigANNVectorDataSet(data)
     #index_dataset = HDF5DataSet(data, Context.INDEX)
 
@@ -37,12 +42,17 @@ def run_experiment(stage):
     start = None
     end = None
     if stage == 0:
-        training_vectors = index_dataset.read(train_count)
-        index = faiss.index_factory(training_vectors.shape[1], "IVF{}(HNSW16_PQ16),Flat".format(nlist))
-        print("training index")
+        index_description = "IVF{}(HNSW16_SQfp16),Flat".format(nlist)
+        print("Training Index with descrption\"{}\" and training points={}".format(index_description, train_count))
+        print("Reading dataset...")
+        training_vectors = index_dataset.read(nlist)
+
+        index = faiss.index_factory(training_vectors.shape[1], index_description)
+        print("Training index")
         start = time.time()
         index.train(training_vectors)
         end = time.time()
+        print("Training complete")
         print("write " + tmpdir + "trained.index")
         faiss.write_index(index, tmpdir + "trained.index")
 
@@ -51,7 +61,7 @@ def run_experiment(stage):
         batches = index_count // batch_size
         curr_start = 0
         for bno in range(batches):
-            xb = index_dataset.read(batch_size)
+            xb = index_dataset.read_batch(batch_size)
             index = faiss.read_index(tmpdir + "trained.index")
             print("adding vectors %d:%d" % (curr_start, curr_start + batch_size))
             index.add_with_ids(xb, np.arange(curr_start, curr_start + batch_size))
