@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-from python.disk_experiment import run_experiment
+from python.experiments.disk_experiment import run_experiment
 from python.utils.telemetry import collect_telemetry
 
 
